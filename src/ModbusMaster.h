@@ -222,7 +222,9 @@ class ModbusMaster
     uint8_t  maskWriteRegister(uint16_t, uint16_t, uint16_t);
     uint8_t  readWriteMultipleRegisters(uint16_t, uint16_t, uint16_t, uint16_t);
     uint8_t  readWriteMultipleRegisters(uint16_t, uint16_t);
+
     uint8_t  writePassword(uint32_t);
+    uint8_t  resetEnergy();
     
   private:
     Stream* _serial;                                             ///< reference to serial port object
@@ -256,6 +258,7 @@ class ModbusMaster
     static const uint8_t ku8MBReadWriteMultipleRegisters = 0x17; ///< Modbus function 0x17 Read Write Multiple Registers
     
     static const uint8_t ku8MBWritePassword              = 0x28; ///< Modbus function 0x28 Write Password
+    static const uint8_t ku8MBResetEnergy                = 0x42; ///< Modbus function 0x42 Reset Energy
 
     // Modbus timeout [milliseconds]
     static const uint16_t ku16MBResponseTimeout          = 2000; ///< Modbus timeout [milliseconds]

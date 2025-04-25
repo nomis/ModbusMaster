@@ -636,6 +636,11 @@ uint8_t  ModbusMaster::writePassword(uint32_t password)
   return ModbusMasterTransaction(ku8MBWritePassword);
 }
 
+uint8_t  ModbusMaster::resetEnergy()
+{
+  return ModbusMasterTransaction(ku8MBResetEnergy);
+}
+
 
 /* _____PRIVATE FUNCTIONS____________________________________________________ */
 /**
@@ -837,7 +842,7 @@ uint8_t ModbusMaster::ModbusMasterTransaction(uint8_t u8MBFunction)
     }
     
     // evaluate slave ID, function code once enough bytes have been read
-    if (u16ModbusADUSize == 5)
+    if (u16ModbusADUSize == 4)
     {
       // verify response is for correct Modbus slave
       if (u8ModbusADU[0] != _u8MBSlave)
@@ -868,22 +873,26 @@ uint8_t ModbusMaster::ModbusMasterTransaction(uint8_t u8MBFunction)
         case ku8MBReadInputRegisters:
         case ku8MBReadHoldingRegisters:
         case ku8MBReadWriteMultipleRegisters:
-          u8BytesLeft = u8ModbusADU[2];
+          u8BytesLeft = u8ModbusADU[2] + 1;
           break;
           
         case ku8MBWriteSingleCoil:
         case ku8MBWriteMultipleCoils:
         case ku8MBWriteSingleRegister:
         case ku8MBWriteMultipleRegisters:
-          u8BytesLeft = 3;
+          u8BytesLeft = 4;
           break;
           
         case ku8MBMaskWriteRegister:
-          u8BytesLeft = 5;
+          u8BytesLeft = 6;
           break;
 
         case ku8MBWritePassword:
-          u8BytesLeft = 3;
+          u8BytesLeft = 4;
+          break;
+
+        case ku8MBResetEnergy:
+          u8BytesLeft = 0;
           break;
       }
     }
@@ -894,7 +903,7 @@ uint8_t ModbusMaster::ModbusMasterTransaction(uint8_t u8MBFunction)
   }
   
   // verify response is large enough to inspect further
-  if (!u8MBStatus && u16ModbusADUSize >= 5)
+  if (!u8MBStatus && u16ModbusADUSize >= 4)
   {
     // calculate CRC
     u16CRC = 0xFFFF;
@@ -919,6 +928,8 @@ uint8_t ModbusMaster::ModbusMasterTransaction(uint8_t u8MBFunction)
   // disassemble ADU into words
   if (!u8MBStatus)
   {
+    _u8ResponseBufferLength = 0;
+
     // evaluate returned Modbus function code
     switch(u8ModbusADU[1])
     {
@@ -965,6 +976,7 @@ uint8_t ModbusMaster::ModbusMasterTransaction(uint8_t u8MBFunction)
       case ku8MBWritePassword:
         _u16ResponseBuffer[0] = word(u8ModbusADU[2], u8ModbusADU[3]);
         _u16ResponseBuffer[1] = word(u8ModbusADU[4], u8ModbusADU[5]);
+        _u8ResponseBufferLength = 2;
         break;
     }
   }
